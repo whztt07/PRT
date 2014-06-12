@@ -1,0 +1,13 @@
+Info,  T9568: Load models/dwarf.x
+Info,  T9568: Found a matching importer for this file format
+Info,  T9568: Import root directory is 'models\'
+Info,  T9568: Entering post processing pipeline
+Info,  T9568: Points: 0, Lines: 0, Triangles: 2, Polygons: 0 (Meshes, X = removed)
+Warn,  T9568: Simplified dummy tracks with just one key
+Skipping one or more lines with the same contents
+Info,  T9568: CalcTangentsProcess finished. Tangents have been calculated
+Info,  T9568: JoinVerticesProcess finished | Verts in: 5688 out: 2001 | ~64.8%
+Info,  T9568: Removed 1 bones. Input bones: 1. Output bones: 0
+Info,  T9568: Removed 2 bones. Input bones: 39. Output bones: 37
+Info,  T9568: Cache relevant are 4 meshes (1896 faces). Average output ACMR is 1.142405
+Info,  T9568: Leaving post processing pipeline
