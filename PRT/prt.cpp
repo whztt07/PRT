@@ -28,8 +28,12 @@ bool Scene::loadMeshFromFile(const char* path)
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
 		for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
-			v->setValue(mesh->mVertices[j]);
-			n->setValue(mesh->mNormals[j]);
+			v->x = mesh->mVertices[j].x;
+			v->y = mesh->mVertices[j].y;
+			v->z = mesh->mVertices[j].z;
+			n->x = mesh->mNormals[j].x;
+			n->y = mesh->mNormals[j].y;
+			n->z = mesh->mNormals[j].z;
 			aabb.expand(*v);
 			v++; n++;
 		}
@@ -105,7 +109,9 @@ void GenerateSamples(Sampler* sampler, int N)
 			int k = i*N + j;
 			//sampler->samples[k].spherical_coord.theta = theta;
 			//sampler->samples[k].spherical_coord.phi = phi;
-			sampler->samples[k].cartesian_coord.setValue(x, y, z);
+			sampler->samples[k].cartesian_coord.x = x;
+			sampler->samples[k].cartesian_coord.y = y;
+			sampler->samples[k].cartesian_coord.z = z;
 			sampler->samples[k].sh_functions = NULL;
 		}
 	}
@@ -278,7 +284,7 @@ void ProjectUnshadowed(Color** coeffs, Sampler* sampler, Scene* scene, int bands
 	for (int i = 0; i < scene->number_of_vertices; i++) {
 		for (int j = 0; j < sampler->number_of_samples; j++) {
 			Sample& sample = sampler->samples[j];
-			float cosine_term = scene->normals[i].dot(sample.cartesian_coord);
+			float cosine_term = glm::dot(scene->normals[i], sample.cartesian_coord);
 			for (int k = 0; k < bands*bands; k++) {
 				float sh_function = sample.sh_functions[k];
 				int materia_idx = scene->material[i];
@@ -311,23 +317,23 @@ bool RayIntersectsTriangle(Vector3& p, Vector3& d, Vector3& v0, Vector3& v1, Vec
 {
 	Vector3 e1 = v1 - v0;
 	Vector3 e2 = v2 - v0;
-	Vector3 h = d.cross(e2);
-	float a = e1.dot(h);
+	Vector3 h = glm::cross(d, e2);
+	float a = glm::dot(e1, h);
 	if (a > -0.00001f && a < 0.00001f)
 		return false;
 
 	float f = 1.0f / a;
 	Vector3 s = p - v0;
-	float u = f * s.dot(h);
+	float u = f * glm::dot(s, h);
 	if (u < 0.0f || u > 1.0f)
 		return false;
 
-	Vector3 q = s.cross(e1);
-	float v = f * d.dot(q);
+	Vector3 q = glm::cross(s, e1);
+	float v = f * glm::dot(d, q);
 	if (v < 0.0f || u + v > 1.0f)
 		return false;
 
-	float t = f * e2.dot(q);
+	float t = f * glm::dot(e2, q);
 	if (t < 0.0f)
 		return false;
 	return true;
@@ -367,7 +373,7 @@ void ProjectShadowed(Color** coeffs, Sampler* sampler, Scene* scene, int bands)
 		{
 			if (Visibility(scene, i, sample.cartesian_coord))
 			{
-				float cosine_term = scene->normals[i].dot(sample.cartesian_coord);
+				float cosine_term = glm::dot(scene->normals[i], sample.cartesian_coord);
 				for (int k = 0; k < bands*bands; k++)
 				{
 					float sh_function = sample.sh_functions[k];

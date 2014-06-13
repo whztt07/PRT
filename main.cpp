@@ -2,25 +2,34 @@
 //
 
 #include <stdlib.h>
-#include "glut.h"
+#include <glm\gtc\matrix_transform.hpp>
 #include "prt.h"
-#include <opencv2\opencv.hpp>
 #include "utils.h"
-#include "GLCamera.h"
-#include "control.h"
+#include "glSetting.h"
+#include "CAssimpModel.h"
 using namespace std;
-using namespace cv;
 
-GLCamera* camera;
-
+// PRT
 Color light;
 Color** coeffs;
 Scene scene;
-const int bands = 3;
-int scale = 2;
+const int bands = 5;
+const int numSamples = 5;
+
+//顶点位置数组  
+float positionData[] = {  
+    -0.8f, -0.8f, 0.0f,  
+    0.8f, -0.8f, 0.0f,  
+    0.0f,  0.8f, 0.0f };  
+//颜色数组  
+float colorData[] = {  
+        1.0f, 0.0f, 0.0f,  
+        0.0f, 1.0f, 0.0f,  
+        0.0f, 0.0f, 1.0f }; 
 
 void Render(Color* light, Color** coeffs, Scene* scene, int bands)
 {
+	//glPushMatrix();
 	glBegin(GL_TRIANGLES);
 	for (int i = 0; i < scene->number_of_triangles; i++)
 	{
@@ -51,127 +60,156 @@ void Render(Color* light, Color** coeffs, Scene* scene, int bands)
 		glVertex3f(v2.x, v2.y, v2.z);
 	}
 	glEnd();
+	//glPopMatrix();
 }
 
 void redraw()
 {
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClear(GL_COLOR_BUFFER_BIT);
-	//glColor3f(1.f, 1.f, 1.f);
-	
-
-
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	// scale the whole asset to fit into our view frustum 
-	//tmp = scene_max.x-scene_min.x;
-	//tmp = aisgl_max(scene_max.y - scene_min.y,tmp);
-	//tmp = aisgl_max(scene_max.z - scene_min.z,tmp);
-	//tmp = 1.f / tmp;
-	float tmp = 10;
-	glTranslatef(0.f, 0.f, 0.f);
-	glScalef(tmp, tmp, tmp);
-	//gluLookAt(0.f,0.f,3.f,0.f,0.f,-5.f,0.f,1.f,0.f);
-	//glMatrixMode(GL_MODELVIEW);
-	//LookAt();
-	//glLoadIdentity();
-	//camera->setModelViewMatrix();
+	//gluLookAt(0.f, 0.f, 3.f, 0.f, 0.f, -5.f, 0.f, 1.f, 0.f);
+	//gluLookAt(eye[0], eye[1], eye[2], center[0], center[1], center[2], up[0], up[1], up[2]);
+
+	//glTranslatef(0.f, 0.f, -zoom);
+	//glRotatef(beta, 1.f, 0.f, 0.f);
+	//glRotatef(beta, 0.f, 0.f, 1.f);
+
+	glRotatef(fRotate, 0.f, 1.f, 0.f);
+	glScalef(fScale, fScale, fScale);
+	//glTranslatef(-scene.center.x, -scene.center.y, -scene.center.z);
+
 	Render(&light, coeffs, &scene, bands);
-	//glBegin(GL_QUADS);
-	//glColor3f(1, 0, 0);
-	//glVertex3f(-0.5, 0.5, 0.5);
-	//glVertex3f(0.5, 0.5, 0.5);
-	//glVertex3f(0.5, -0.5, 0.5);
-	//glVertex3f(-0.5, -0.5, 0.5);
-	//glEnd(); // GL_QUADS
-	glutSwapBuffers();
+	//glutSwapBuffers();
+	if (bAnim) {
+		fRotate += 0.5f;
+		if (fRotate > 360)
+			fRotate -= 360;
+	}
+}
+
+// test!
+void display()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+    glBindVertexArray(vaoHandle);
+    glDrawArrays(GL_TRIANGLES, 0, 3);  
+    glBindVertexArray(0);
+}
+
+void renderModel(CAssimpModel& model)
+{
+	static GLint Frames = 0;
+	// Clear the color and depth buffers.
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	// We don't want to modify the projection matrix. */
+	glMatrixMode( GL_MODELVIEW );
+
+	if (bAnim)
+		changeMatrics();
+	model.render();
 }
 
 int main (int argc,  char *argv[])
 {
-	srand(time(NULL));
-	cout << "Loading image..." << endl;
+	// load resources
+	//srand(time(NULL));
+	//cout << "Loading resources\n";
+	//cout << "   Loading Light probe...\n";
+	//Image img;			// image for light probe				
+	//img.loadFromFile("uffizi_probe.jpg");
+	//cout << "  Loading Model...\n";
+	//scene.loadMeshFromFile("models/Head_Sad.x");			// get mesh
+	//cout << "     # of vertices  = " << scene.number_of_vertices << endl;
+	//cout << "     # of triangles = " << scene.number_of_triangles << endl;
+	//Color white(1, 1, 1);
+	//Color black(0, 0, 0);
+	//Color grey(0.5f, 0.5f, 0.5f);
+	//scene.albedo = &white;
+	//for (int i = 0; i < scene.number_of_vertices; i++)
+	//	scene.material[i] = 0;
+	//fScale = scene.aabb.max.x - scene.aabb.min.x;
+	//fScale = aisgl_max(scene.aabb.max.y - scene.aabb.min.y, fScale);
+	//fScale = aisgl_max(scene.aabb.max.z - scene.aabb.min.z, fScale);
+	//fScale = 1.f/fScale * 2;
+	//
+	//coeffs = new Color*[scene.number_of_vertices];
+	//for (int i = 0; i < scene.number_of_vertices; i++)
+	//	coeffs[i] = new Color[bands*bands];
 
-	Mat mat = imread("uffizi_probe.jpg");
-	if (mat.empty()) {
-		fprintf(stderr, "Error: load image failed.");
-		return -1;
+	//cout << "Preprocess\n";
+	//auto startTime = Clock::now();
+
+	//Sampler sampler;
+	//cout << "  Generate Samples...\n";
+	//GenerateSamples(&sampler, numSamples);
+
+	//cout << "  Precompute SH Functions...\n";
+	//PrecomputeSHFunctions(&sampler, bands);
+
+	//cout << "  Project Light Function...\n";
+	//ProjectLightFunction(&light, &sampler, &img, bands);	// get light
+
+	//cout << "  Project Unshadowed...\n";
+	//ProjectUnshadowed(coeffs, &sampler, &scene, bands);	// get coeffs
+	////ProjectShadowed(coeffs, &sampler, &scene, bands);
+
+	//auto endTime = Clock::now();
+	//auto ms = duration_cast<milliseconds>(endTime-startTime).count();
+	//cout << "Preproc time: " << ms << " ms" << '\n';
+
+	
+	// PART 2 Runtime
+
+	// Initialize GLFW
+	GLFWwindow* window;
+	initGLFW(window);
+	// Initialize GLEW
+	if (GLEW_OK != glewInit()) {
+		printf("[ERROR] Failed to initialize GLEW\n");
+		exit(EXIT_FAILURE);
 	}
-	namedWindow("image", CV_WINDOW_AUTOSIZE);
-	imshow("image", mat);
-	//   waitKey();
 
-	Image img;
-	img.height = mat.rows;
-	img.width = mat.cols;
-	img.pixel[0] = new uchar[img.height * img.width];
-	img.pixel[1] = new uchar[img.height * img.width];
-	img.pixel[2] = new uchar[img.height * img.width];
-	for (int i = 0; i < img.height; i++) {
-		for (int j = 0; j < img.width; j++) {
-			Vec3b intensity = mat.at<Vec3b>(i, j);
-			img.pixel[0][i*img.height + j] = intensity.val[2];
-			img.pixel[1][i*img.width + j] = intensity.val[1];
-			img.pixel[2][i*img.width + j] = intensity.val[0];
-		}
+	// Use Gouraud (smooth) shading
+    //glShadeModel(GL_SMOOTH);
+    // Switch on the z-buffer
+    //glEnable(GL_DEPTH_TEST);
+	// background
+	//glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+
+	//initShader("shader/basic.vert", "shader/basic.frag");
+	//initShader("shader/without_texture.vert", "shader/without_texture.frag");
+	//initVBO(positionData, colorData);
+	
+	//ShaderProgram prog;
+	CAssimpModel model(prog);
+	model.LoadModelFromFile("models/happy_vrip_res2.obj");
+	initGL();
+	compileShader(prog);
+	//glm::mat4 modelMatrix = glm::mat4(1.0f);
+	//glm::mat4 viewMatrix = glm::lookAt(vec3(0.0f,0.0f,10.0f), vec3(0.0f,0.0f,-5.0f), vec3(0.0f,1.0f,0.0f));
+	modelMatrix = glm::mat4(1.0f);
+	viewMatrix = glm::lookAt(vec3(0.0f,0.0f,10.0f), vec3(0.0f,0.0f,-5.0f), vec3(0.0f,1.0f,0.0f));
+	//setUniform();
+	mat4 projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f,1000.0f);
+	mat4 mv = viewMatrix * modelMatrix;
+
+	prog.setUniform("Kd", 0.0f, 0.9f, 0.9f);
+	prog.setUniform("Ld", 1.0f, 0.5f, 0.5f);
+	prog.setUniform("LightPosition", viewMatrix * vec4(-5.0f,220.0f,215.0f,1.0f) );
+	prog.setUniform("ModelViewMatrix", mv);
+	prog.setUniform("NormalMatrix",mat3( vec3(mv[0]), vec3(mv[1]), vec3(mv[2]) ));
+	prog.setUniform("MVP", projection * mv);
+
+	while (!glfwWindowShouldClose(window)){
+		//redraw();
+		//display();
+		renderModel(model);
+		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
 
-	cout << "PRT start\n";
-
-	// 1
-	//const int bands = 3;	// -> global
-	Sampler sampler;
-	cout << "  Generate Samples...\n";
-	GenerateSamples(&sampler, 10);			// N = 10
-	cout << "  Precompute SH Functions...\n";
-	PrecomputeSHFunctions(&sampler, bands);		// bands = 3
-
-	//Scene scene;	/// -> global;
-	//Color light;	// -> global
-	cout << "  Project Light Function...\n";
-	ProjectLightFunction(&light, &sampler, &img, bands);	// get light
-
-	cout << "  Loading Model...\n";
-	load_mesh("models/ChessKing.obj", &scene);
-
-	cout << "     # of vertices  = " << scene.number_of_vertices << endl;
-	cout << "     # of triangles = " << scene.number_of_triangles << endl;
-	Color white(1, 1, 1);
-	Color black(0, 0, 0);
-	scene.albedo = &white;
-	for (int i = 0; i < scene.number_of_vertices; i++)
-		scene.material[i] = 0;
-
-	coeffs = new Color*[scene.number_of_vertices];	// 2
-	for (int i = 0; i < scene.number_of_vertices; i++)
-		coeffs[i] = new Color[bands*bands];
-
-	cout << "  Project Unshadowed...\n";
-	ProjectUnshadowed(coeffs, &sampler, &scene, bands);	// get coeffs
-
-	glutInitWindowSize(900,600);
-	glutInitWindowPosition(100,100);
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInit(&argc, argv);
-	//glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	int windowHandle = glutCreateWindow("PRT");
-	//glutMouseFunc(processMouse);
-	///     glutKeyboardFunc(KeyFunc);    键盘按键
-	glutMouseFunc(MouseFunc);   
-	glutMotionFunc(MouseMotion);
-	//Vector3d pos(0.0f, 0.0f, 12.0f);
-	//Vector3d target(0.f, 0.f, 0.f);
-	//Vector3d up(0.f, 1.f, 0.f);
-	//camera = new GLCamera(pos, target, up);
-
-	glutDisplayFunc(redraw);
-
-	glutMainLoop();
-
-
-	//delete camera;
+	glfwDestroyWindow(window);
+	glfwTerminate();
 	return 0;
 }
-
-

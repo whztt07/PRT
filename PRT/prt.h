@@ -10,27 +10,30 @@
 #include <assimp/scene.h>		// collects data
 #include <assimp/postprocess.h> // various extra operations
 #include "SHEval.h"
+#include <glm/glm.hpp>
 using std::cout;
+using glm::vec3;
 
+typedef vec3 Vector3;
 const float PI = 3.1415926f;
 
-struct Vector3
-{
-	float x;
-	float y;
-	float z;
-	Vector3(float x = 0.f, float y = 0.f, float z = 0.f) : x(x), y(y), z(z) {}
-	void setValue(float _x = 0.f, float _y = 0.f, float _z = 0.f) {x = _x; y = _y; z = _z; }
-	void setValue(const aiVector3D& v) {x = v.x; y = v.y; z = v.z; }
-	void scale(float factor) { x*=factor; y*=factor; z*=factor; }
-	Vector3& operator=(const aiVector3D& v) {x = v.x; y = v.y; z = v.z; return *this; }
-	Vector3& operator-=(const Vector3& v) {x -= v.x; y -= v.y; z -= v.z; return *this;}
-	friend Vector3 operator+(const Vector3& l, const Vector3& r) {return Vector3(l.x+r.x, l.y+r.y, l.z+r.z);}
-	friend Vector3 operator-(const Vector3& l, const Vector3& r) {return Vector3(l.x-r.x, l.y-r.y, l.z-r.z);}
-	friend Vector3 operator/(const Vector3& v, const float f) {return Vector3(v.x/f, v.y/f, v.z/f); }
-	float dot(const Vector3& v) const { return x*v.x + y*v.y + z*v.z; }
-	Vector3 cross(const Vector3& v) const { return Vector3(y*v.z-v.y*z, z*v.x-v.z*x, x*v.y-v.x*y); };
-};
+//struct Vector3
+//{
+//	float x;
+//	float y;
+//	float z;
+//	Vector3(float x = 0.f, float y = 0.f, float z = 0.f) : x(x), y(y), z(z) {}
+//	void setValue(float _x = 0.f, float _y = 0.f, float _z = 0.f) {x = _x; y = _y; z = _z; }
+//	void setValue(const aiVector3D& v) {x = v.x; y = v.y; z = v.z; }
+//	void scale(float factor) { x*=factor; y*=factor; z*=factor; }
+//	Vector3& operator=(const aiVector3D& v) {x = v.x; y = v.y; z = v.z; return *this; }
+//	Vector3& operator-=(const Vector3& v) {x -= v.x; y -= v.y; z -= v.z; return *this;}
+//	friend Vector3 operator+(const Vector3& l, const Vector3& r) {return Vector3(l.x+r.x, l.y+r.y, l.z+r.z);}
+//	friend Vector3 operator-(const Vector3& l, const Vector3& r) {return Vector3(l.x-r.x, l.y-r.y, l.z-r.z);}
+//	friend Vector3 operator/(const Vector3& v, const float f) {return Vector3(v.x/f, v.y/f, v.z/f); }
+//	float dot(const Vector3& v) const { return x*v.x + y*v.y + z*v.z; }
+//	Vector3 cross(const Vector3& v) const { return Vector3(y*v.z-v.y*z, z*v.x-v.z*x, x*v.y-v.x*y); };
+//};
 
 struct Spherical
 {

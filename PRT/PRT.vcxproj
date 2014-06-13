@@ -39,7 +39,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(OPENCV_DIR)/../../include;$(IncludePath)</IncludePath>
+    <IncludePath>$(OPENCV_DIR)/../../include;D:\workspace\glfw-3.0.4\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(OPENCV_DIR)/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -50,12 +50,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>D:\workspace\Assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\workspace\Assimp\include;D:\workspace\glew-1.10.0\include;D:\workspace\glfw-3.0.4\include;D:\workspace\glm-0.9.5.3\glm</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glut32.lib;assimp.lib;opencv_core246d.lib;opencv_imgproc246d.lib;opencv_highgui246d.lib;opencv_ml246d.lib;opencv_video246d.lib;opencv_features2d246d.lib;opencv_calib3d246d.lib;opencv_objdetect246d.lib;opencv_contrib246d.lib;opencv_legacy246d.lib;opencv_flann246d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\workspace\Assimp\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;glfw3.lib;OpenGL32.lib;GLU32.lib;assimp.lib;opencv_core246d.lib;opencv_imgproc246d.lib;opencv_highgui246d.lib;opencv_ml246d.lib;opencv_video246d.lib;opencv_features2d246d.lib;opencv_calib3d246d.lib;opencv_objdetect246d.lib;opencv_contrib246d.lib;opencv_legacy246d.lib;opencv_flann246d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\workspace\Assimp\lib\x86;D:\workspace\glew-1.10.0\lib\Release\Win32;D:\workspace\glfw-3.0.4\build\src\Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -64,25 +64,29 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>D:\workspace\Assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\workspace\Assimp\include;D:\workspace\glew-1.10.0\include;D:\workspace\glfw-3.0.4\include;D:\workspace\glm-0.9.5.3\glm</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>glut32.lib;assimp.lib;opencv_core246.lib;opencv_imgproc246.lib;opencv_highgui246.lib;opencv_ml246.lib;opencv_video246.lib;opencv_features2d246.lib;opencv_calib3d246.lib;opencv_objdetect246.lib;opencv_contrib246.lib;opencv_legacy246.lib;opencv_flann246.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\workspace\Assimp\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;glfw3.lib;OpenGL32.lib;GLU32.lib;assimp.lib;opencv_core246.lib;opencv_imgproc246.lib;opencv_highgui246.lib;opencv_ml246.lib;opencv_video246.lib;opencv_features2d246.lib;opencv_calib3d246.lib;opencv_objdetect246.lib;opencv_contrib246.lib;opencv_legacy246.lib;opencv_flann246.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\workspace\Assimp\lib\x86;D:\workspace\glew-1.10.0\lib\Release\Win32;D:\workspace\glfw-3.0.4\build\src\Release</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CAssimpModel.cpp" />
+    <ClCompile Include="GLWindow.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="SHEval.cpp" />
     <ClCompile Include="prt.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="glSetting.h" />
-    <ClInclude Include="glut.h" />
+    <ClInclude Include="CAssimpModel.h" />
+    <ClInclude Include="GLWindow.h" />
     <ClInclude Include="prt.h" />
+    <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="SHEval.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
