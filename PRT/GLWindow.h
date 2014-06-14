@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _GLWINDOW_H_
+#define _GLWINDOW_H_
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -16,11 +17,15 @@ public:
 	~GLWindow(void);
 	void initGLFW();
 	void initGL();
-	void compileShader();
-	void renderGL();
+	void compileShader(const char* vertFileName, const char* fragFileName);
+	void renderModel(CAssimpModel* model);
+	//void renderPRT(CAssimpModel* model, Color* light, Color** coeffs, int bands);
 	void setUniform();
 	void clean();
 	void changeMatrics();
+
+
+	ShaderProgram prog;
 
 private:
 	int width;
@@ -28,13 +33,11 @@ private:
 	mat4 modelMatrix;
 	mat4 viewMatrix;
 
-	ShaderProgram prog;
 	GLuint vertexArrayID;
 	GLuint vertexbuffer;
 	GLuint normalbuffer;
 
 	GLFWwindow* window;
-	CAssimpModel model;
 
 	// GLFW callback
 	static void error_callback(int error, const char* description);
@@ -44,13 +47,14 @@ private:
 	static void scroll_callback(GLFWwindow* window, double x, double y);
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-	// display
+	// display control
 	static bool bAnim;
+	static bool locked;
 	static GLfloat alpha;
 	static GLfloat beta;
 	static GLfloat zoom;
-	static bool locked;
 	static int cursorX;
 	static int cursorY;
 };
 
+#endif

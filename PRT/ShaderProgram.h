@@ -40,7 +40,7 @@ public:
 
 	int    getHandle();
 	bool   isLinked();
-	void deleteProgram();
+	void   deleteProgram();
 
 	void   bindAttribLocation( GLuint location, const char * name);
 	void   bindFragDataLocation( GLuint location, const char * name );

@@ -1,15 +1,15 @@
 #include "GLWindow.h"
 
 bool GLWindow::bAnim = false;
-GLfloat GLWindow::alpha = 210.f;
-GLfloat GLWindow::beta = -70.f;
-GLfloat GLWindow::zoom = 2.f;
-bool GLWindow::locked = true;
+GLfloat GLWindow::alpha = 0.f;
+GLfloat GLWindow::beta = 0.f;
+GLfloat GLWindow::zoom = 0.f;
+bool GLWindow::locked = false;
 int GLWindow::cursorX = 0;
 int GLWindow::cursorY = 0;
 
 GLWindow::GLWindow(int _width, int _height) 
-	: width(_width), height(_height), prog(), model(prog)
+	: width(_width), height(_height), prog()
 {
 	initGLFW();
 
@@ -19,11 +19,9 @@ GLWindow::GLWindow(int _width, int _height)
 		exit(EXIT_FAILURE);
 	}
 
-	model.LoadModelFromFile("models/bunny.obj");
 	initGL();
-	compileShader();
-
-	setUniform();
+	//compileShader();
+	//setUniform();
 };
 
 GLWindow::~GLWindow(void)
@@ -75,40 +73,30 @@ void GLWindow::initGL()
 	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
 	modelMatrix = mat4(1.0f);
-	viewMatrix = glm::lookAt(vec3(0.0f,0.0f,10.0f), vec3(0.0f,0.0f,-5.0f), vec3(0.0f,1.0f,0.0f));
-
-	//model.LoadModelFromFile("assets/model/bunny.obj");
+	viewMatrix = glm::lookAt(vec3(0.0f,0.0f,10.0f), vec3(0.0f,0.0f,-10.0f), vec3(0.0f,1.0f,0.0f));
 }
 
-void GLWindow::compileShader()
+void GLWindow::compileShader(const char* vertFileName, const char* fragFileName)
 {
 
-	if( ! prog.compileShaderFromFile("shader/without_texture.vert",GLSLShader::VERTEX) )
-	{
-		printf("Vertex shader failed to compile!\n%s",
-			prog.log().c_str());
+	if( ! prog.compileShaderFromFile(vertFileName,GLSLShader::VERTEX) ) {
+		printf("[ERROT] Vertex shader failed to compile!\n%s", prog.log().c_str());
 		exit(1);
 	}
-	if( ! prog.compileShaderFromFile("shader/without_texture.frag",GLSLShader::FRAGMENT))
-	{
-		printf("Fragment shader failed to compile!\n%s",
-			prog.log().c_str());
+	if( ! prog.compileShaderFromFile(fragFileName, GLSLShader::FRAGMENT)) {
+		printf("[ERROT] Fragment shader failed to compile!\n%s", prog.log().c_str());
 		exit(1);
 	}
 
 	prog.bindAttribLocation(0, "VertexPosition");
 	prog.bindAttribLocation(1, "VertexNormal");
 
-	if( ! prog.link() )
-	{
-		printf("Shader program failed to link!\n%s",
-			prog.log().c_str());
+	if( ! prog.link() ) {
+		printf("[ERROT] Shader program failed to link!\n%s", prog.log().c_str());
 		exit(1);
 	}
-	if( ! prog.validate() )
-	{
-		printf("Program failed to validate!\n%s",
-			prog.log().c_str());
+	if( ! prog.validate() ) {
+		printf("[ERROR] Program failed to validate!\n%s", prog.log().c_str());
 		exit(1);
 	}
 	prog.use();
@@ -116,13 +104,13 @@ void GLWindow::compileShader()
 
 void GLWindow::changeMatrics()
 {
-	this->modelMatrix = glm::rotate(this->modelMatrix, glm::radians(10.f), vec3(0.0f,1.0f,0.0f));
+	this->modelMatrix = glm::rotate(this->modelMatrix, glm::radians(30.f), vec3(0.0f,1.0f,0.0f));
 	mat4 mv = viewMatrix * modelMatrix;
 	glfwGetFramebufferSize(window, &width, &height);
 	mat4 projection = glm::perspective(45.0f, float(width)/height, 0.1f, 1000.0f);
 	prog.setUniform("MVP", projection * mv);
-	prog.setUniform("ModelViewMatrix", mv);
-	prog.setUniform("NormalMatrix",mat3( vec3(mv[0]), vec3(mv[1]), vec3(mv[2]) ));
+	//prog.setUniform("ModelViewMatrix", mv);
+	//prog.setUniform("NormalMatrix",mat3( vec3(mv[0]), vec3(mv[1]), vec3(mv[2]) ));
 }
 
 void GLWindow::setUniform()
@@ -132,16 +120,16 @@ void GLWindow::setUniform()
 	mat4 projection = glm::perspective(45.0f, float(width)/height, 0.1f,1000.0f);
 	mat4 mv = viewMatrix * modelMatrix;
 
-	prog.setUniform("Kd", 0.0f, 0.9f, 0.9f);
-	prog.setUniform("Ld", 1.0f, 0.5f, 0.5f);
-	prog.setUniform("LightPosition", viewMatrix * vec4(-5.0f,220.0f,215.0f,1.0f) );
-	prog.setUniform("ModelViewMatrix", mv);
-	prog.setUniform("NormalMatrix",mat3( vec3(mv[0]), vec3(mv[1]), vec3(mv[2]) ));
+	//prog.setUniform("Kd", 0.9f, 0.9f, 0.9f);
+	//prog.setUniform("Ld", 0.5f, 0.5f, 0.5f);
+	//prog.setUniform("LightPosition", viewMatrix * vec4(-5.0f, 220.0f, 215.0f, 1.0f) );
+	//prog.setUniform("ModelViewMatrix", mv);
+	//prog.setUniform("NormalMatrix",mat3( vec3(mv[0]), vec3(mv[1]), vec3(mv[2]) ));
 	prog.setUniform("MVP", projection * mv);
 }
 
 
-void GLWindow::renderGL()
+void GLWindow::renderModel(CAssimpModel* model)
 {
 	while (!glfwWindowShouldClose(window)) {
 		
@@ -149,12 +137,66 @@ void GLWindow::renderGL()
 		glMatrixMode(GL_MODELVIEW);
 
 		if (bAnim) changeMatrics();
-		model.render();
+		if (NULL != model)
+			model->render();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 }
+
+
+//void GLWindow::renderPRT(CAssimpModel* model, Color* light, Color** coeffs, int bands)
+//{
+//	while (!glfwWindowShouldClose(window)) {
+//		
+//		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//		glMatrixMode(GL_MODELVIEW);
+//		glLoadIdentity();
+//		    // Move back
+//    glTranslatef(0.0, 0.0, -zoom);
+//    // Rotate the view
+//    glRotatef(beta, 1.0, 0.0, 0.0);
+//    glRotatef(alpha, 0.0, 0.0, 1.0);
+//
+//		//if (bAnim) changeMatrics()
+//		glBegin(GL_TRIANGLES);
+//		for (int i = 0; i < model->indices.size(); i += 3)
+//		{
+//			int idx1 = model->indices[i];
+//			int idx2 = model->indices[i+1];
+//			int idx3 = model->indices[i+2];
+//			Vector3& v0 = model->vertices[idx1].m_pos;
+//			Vector3& v1 = model->vertices[idx2].m_pos;
+//			Vector3& v2 = model->vertices[idx3].m_pos;
+//			Color c0 (0.0f, 0.0f, 0.0f);
+//			Color c1 (0.0f, 0.0f, 0.0f);
+//			Color c2 (0.0f, 0.0f, 0.0f);
+//			for (int k = 0; k < bands*bands; k++)
+//			{
+//				c0.r += (light[k].r * coeffs[idx1][k].r);
+//				c0.g += (light[k].g * coeffs[idx1][k].g);
+//				c0.b += (light[k].b * coeffs[idx1][k].b);
+//				c1.r += (light[k].r * coeffs[idx2][k].r);
+//				c1.g += (light[k].g * coeffs[idx2][k].g);
+//				c1.b += (light[k].b * coeffs[idx2][k].b);
+//				c2.r += (light[k].r * coeffs[idx3][k].r);
+//				c2.g += (light[k].g * coeffs[idx3][k].g);
+//				c2.b += (light[k].b * coeffs[idx3][k].b);
+//			}
+//			glColor3f(c0.r, c0.g, c0.b);
+//			glVertex3f(v0.x, v0.y, v0.z);
+//			glColor3f(c1.r, c1.g, c1.b);
+//			glVertex3f(v1.x, v1.y, v1.z);
+//			glColor3f(c2.r, c2.g, c2.b);
+//			glVertex3f(v2.x, v2.y, v2.z);
+//		}
+//		glEnd();
+//
+//		glfwSwapBuffers(window);
+//		glfwPollEvents();
+//	}
+//}
 
 //========================================================================
 // Print errors
@@ -245,6 +287,6 @@ void GLWindow::framebuffer_size_callback(GLFWwindow* window, int width, int heig
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(45.0, ratio, 0.1f, 1000.0f);
-	//glMatrixMode(GL_MODELVIEW);
-	//glEnable(GL_DEPTH_TEST);
+	glMatrixMode(GL_MODELVIEW);
+	glEnable(GL_DEPTH_TEST);
 }

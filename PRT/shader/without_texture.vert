@@ -10,8 +10,8 @@ uniform vec4 LightPosition; // Light position in eye coords.
 uniform vec3 Kd;            // Diffuse reflectivity
 uniform vec3 Ld;            // Diffuse light intensity
 
-uniform mat4 ModelViewMatrix;
-uniform mat3 NormalMatrix;
+//uniform mat4 ModelViewMatrix;
+//uniform mat3 NormalMatrix;
 uniform mat4 MVP;
 
 

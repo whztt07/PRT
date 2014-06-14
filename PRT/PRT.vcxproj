@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CAssimpModel.h" />
+    <ClInclude Include="global.h" />
     <ClInclude Include="GLWindow.h" />
     <ClInclude Include="prt.h" />
     <ClInclude Include="ShaderProgram.h" />

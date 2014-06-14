@@ -2,61 +2,6 @@
 #include <opencv2\opencv.hpp>
 using namespace cv;
 
-bool Scene::loadMeshFromFile(const char* path)
-{
-	/* load file with assimp and print some stats */
-	const aiScene* scene = aiImportFile (path, aiProcess_Triangulate);
-	if (!scene) {
-		fprintf (stderr, "[ERROR] reading mesh %s\n", path);
-		return false;
-	}
-
-	// get each mesh
-	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
-		aiMesh* mesh = scene->mMeshes[i];
-		this->number_of_vertices += mesh->mNumVertices;
-		this->number_of_triangles += mesh->mNumFaces;
-		printf ("    %i vertices in mesh[%d]\n", mesh->mNumVertices, i);
-	}
-	this->vertices  = new Vector3[number_of_vertices];
-	this->triangles = new Triangle[number_of_triangles];
-	this->normals	= new Vector3[number_of_vertices];
-	this->material  = new int[number_of_vertices];
-	Vector3*  v = vertices;
-	Triangle* t = triangles;
-	Vector3*  n = normals;
-	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
-		aiMesh* mesh = scene->mMeshes[i];
-		for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
-			v->x = mesh->mVertices[j].x;
-			v->y = mesh->mVertices[j].y;
-			v->z = mesh->mVertices[j].z;
-			n->x = mesh->mNormals[j].x;
-			n->y = mesh->mNormals[j].y;
-			n->z = mesh->mNormals[j].z;
-			aabb.expand(*v);
-			v++; n++;
-		}
-		for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
-			t->a = mesh->mFaces[j].mIndices[0];
-			t->b = mesh->mFaces[j].mIndices[1];
-			t->c = mesh->mFaces[j].mIndices[2];
-			t++;
-		}
-	}
-	Vector3 center = (aabb.min+aabb.max)/2.f;
-	aabb.min -= center;
-	aabb.max -= center;
-	
-	v = vertices;
-	// put in the middle
-	for (int i = 0; i < number_of_vertices; i++) {
-		*v -= center;
-		v++;
-	}
-	return true;
-}
-
 bool Image::loadFromFile(const char* filename)
 {
 	//Mat mat = imread("spheremap.bmp");
@@ -235,20 +180,17 @@ void ProjectLightFunction(Color* coeffs, Sampler* sampler, Image* light, int ban
 		cout << "[WARNING] bands must be >=3 and <= 10. Set bands = 3.\n";
 	} else if (bands > 10) {
 		bands = 10;
-		cout << "[WARNING] bands must be >=3 and <= 10\n. Set bands = 10\n";
+		cout << "[WARNING] bands must be >=3 and <= 10. Set bands = 10\n";
 	}
 
-	for (int i = 0; i < bands*bands; i++)
-	{
+	for (int i = 0; i < bands*bands; i++) {
 		coeffs[i].r = 0.0f;
 		coeffs[i].g = 0.0f;
 		coeffs[i].b = 0.0f;
 	}
-	for (int i = 0; i < sampler->number_of_samples; i++)
-	{
+	for (int i = 0; i < sampler->number_of_samples; i++) {
 		Vector3& direction = sampler->samples[i].cartesian_coord;
-		for (int j = 0; j < bands*bands; j++)
-		{
+		for (int j = 0; j < bands*bands; j++) {
 			Color color;
 			LightProbeAccess(&color, light, direction);
 			float sh_function = sampler->samples[i].sh_functions[j];
@@ -259,8 +201,7 @@ void ProjectLightFunction(Color* coeffs, Sampler* sampler, Image* light, int ban
 	}
 	float weight = 4.0f*PI;
 	float scale = weight / sampler->number_of_samples;
-	for (int i = 0; i < bands*bands; i++)
-	{
+	for (int i = 0; i < bands*bands; i++) {
 		coeffs[i].r *= scale;
 		coeffs[i].g *= scale;
 		coeffs[i].b *= scale;
@@ -270,48 +211,40 @@ void ProjectLightFunction(Color* coeffs, Sampler* sampler, Image* light, int ban
 
 // out: codffs
 // in:  sampler
-//		scene
+//		model
 //		bands
-void ProjectUnshadowed(Color** coeffs, Sampler* sampler, Scene* scene, int bands)
+void ProjectUnshadowed(Color** coeffs, Sampler* sampler, CAssimpModel* model, int bands)
 {
-	for (int i = 0; i < scene->number_of_vertices; i++) {
+	for (int i = 0; i < model->vertices.size(); i++) {
 		for (int j = 0; j < bands*bands; j++) {
 			coeffs[i][j].r = 0.0f;
 			coeffs[i][j].g = 0.0f;
 			coeffs[i][j].b = 0.0f;
 		}
 	}
-	for (int i = 0; i < scene->number_of_vertices; i++) {
-		for (int j = 0; j < sampler->number_of_samples; j++) {
-			Sample& sample = sampler->samples[j];
-			float cosine_term = glm::dot(scene->normals[i], sample.cartesian_coord);
-			for (int k = 0; k < bands*bands; k++) {
-				float sh_function = sample.sh_functions[k];
-				int materia_idx = scene->material[i];
-				Color& albedo = scene->albedo[materia_idx];
-				coeffs[i][k].r += (albedo.r * sh_function * cosine_term);
-				coeffs[i][k].g += (albedo.g * sh_function * cosine_term);
-				coeffs[i][k].b += (albedo.b * sh_function * cosine_term);
-			}
-		}
-	}
+
 	float weight = 4.0f*PI;
 	float scale = weight / sampler->number_of_samples;
-	for (int i = 0; i < scene->number_of_vertices; i++) {
-		for (int j = 0; j < bands*bands; j++) {
-			coeffs[i][j].r *= scale;
-			coeffs[i][j].g *= scale;
-			coeffs[i][j].b *= scale;
+	for (int i = 0; i < model->vertices.size(); i++) {
+		for (int j = 0; j < sampler->number_of_samples; j++) {
+			Sample& sample = sampler->samples[j];
+			float cosine_term = glm::dot(model->vertices[i].m_normal, sample.cartesian_coord);
+			//if (cosine_term < 0.f) cosine_term = 0.f;
+			for (int k = 0; k < bands*bands; k++) {
+				float sh_function = sample.sh_functions[k];
+				//int materia_idx = model->material[i];
+				//Color& albedo = model->albedo[materia_idx];
+				//coeffs[i][k].r += (albedo.r * sh_function * cosine_term);
+				//coeffs[i][k].g += (albedo.g * sh_function * cosine_term);
+				//coeffs[i][k].b += (albedo.b * sh_function * cosine_term);
+				coeffs[i][k].r += (1.f * sh_function * cosine_term) * scale;
+				coeffs[i][k].g += (1.f * sh_function * cosine_term) * scale;
+				coeffs[i][k].b += (1.f * sh_function * cosine_term) * scale;
+			}
 		}
 	}
 }
 
-void cross(float dest[3], float* v1, float* v2)
-{
-	dest[0] = v1[1]*v2[2]-v1[2]*v2[1];
-	dest[1] = v1[2]*v2[0]-v1[0]*v2[2];
-	dest[2] = v1[0]*v2[1]-v1[1]*v2[0];
-}
 
 bool RayIntersectsTriangle(Vector3& p, Vector3& d, Vector3& v0, Vector3& v1, Vector3& v2)
 {
@@ -339,18 +272,20 @@ bool RayIntersectsTriangle(Vector3& p, Vector3& d, Vector3& v0, Vector3& v1, Vec
 	return true;
 }
 
-bool Visibility(Scene* scene, int vertexidx, Vector3& direction)
+bool Visibility(CAssimpModel* model, int vertexidx, Vector3& direction)
 {
 	bool visible = true;
-	Vector3& p = scene->vertices[vertexidx];
-	for (int i = 0; i < scene->number_of_triangles; i++)
+	Vector3& p = model->vertices[vertexidx].m_pos;
+	for (int i = 0; i < model->indices.size(); i += 3)
 	{
-		Triangle& t = scene->triangles[i];
-		if ((vertexidx != t.a) && (vertexidx != t.b) && (vertexidx != t.c))
+		int ta = model->indices[i];
+		int tb = model->indices[i+1];
+		int tc = model->indices[i+2];
+		if ((vertexidx != ta) && (vertexidx != tb) && (vertexidx != tc))
 		{
-			Vector3& v0 = scene->vertices[t.a];
-			Vector3& v1 = scene->vertices[t.b];
-			Vector3& v2 = scene->vertices[t.c];
+			Vector3& v0 = model->vertices[ta].m_pos;
+			Vector3& v1 = model->vertices[tb].m_pos;
+			Vector3& v2 = model->vertices[tc].m_pos;
 			visible = !RayIntersectsTriangle(p, direction, v0, v1, v2);
 			if (!visible)
 				break;
@@ -359,41 +294,49 @@ bool Visibility(Scene* scene, int vertexidx, Vector3& direction)
 	return visible;
 }
 
-void ProjectShadowed(Color** coeffs, Sampler* sampler, Scene* scene, int bands)
+void ProjectShadowed(Color** coeffs, Sampler* sampler, CAssimpModel* model, int bands)
 {
-	for (int i = 0; i < scene->number_of_vertices; i++)
+	for (int i = 0; i < model->vertices.size(); i++)
 		for (int j = 0; j < bands*bands; j++)
 			coeffs[i][j].r = coeffs[i][j].g = coeffs[i][j].b = 0.0f;
 
+	float weight = 4.0f*PI;
+	float scale = weight / sampler->number_of_samples;
 	for (int j = 0; j < sampler->number_of_samples; j++)
 	{
 		printf("%d\n", j);
 		Sample& sample = sampler->samples[j];
-		for (int i = 0; i < scene->number_of_vertices; i++)
+		for (int i = 0; i < model->vertices.size(); i++)
 		{
-			if (Visibility(scene, i, sample.cartesian_coord))
+			if (Visibility(model, i, sample.cartesian_coord))
 			{
-				float cosine_term = glm::dot(scene->normals[i], sample.cartesian_coord);
+				float cosine_term = glm::dot(model->vertices[i].m_normal, sample.cartesian_coord);
 				for (int k = 0; k < bands*bands; k++)
 				{
 					float sh_function = sample.sh_functions[k];
-					int materia_idx = scene->material[i];
-					Color& albedo = scene->albedo[materia_idx];
-					coeffs[i][k].r += (albedo.r * sh_function * cosine_term);
-					coeffs[i][k].g += (albedo.g * sh_function * cosine_term);
-					coeffs[i][k].b += (albedo.b * sh_function * cosine_term);
+					//int materia_idx = model->vertices[i].m_tex[i];
+					//Color& albedo = model->albedo[materia_idx];
+					//coeffs[i][k].r += (albedo.r * sh_function * cosine_term);
+					//coeffs[i][k].g += (albedo.g * sh_function * cosine_term);
+					//coeffs[i][k].b += (albedo.b * sh_function * cosine_term);
+					coeffs[i][k].r += (1.f * sh_function * cosine_term) * scale;
+					coeffs[i][k].g += (1.f * sh_function * cosine_term) * scale;
+					coeffs[i][k].b += (1.f * sh_function * cosine_term) * scale;
 				}
 			}
 		}
 	}
-	float weight = 4.0f*PI;
-	float scale = weight / sampler->number_of_samples;
-	for (int i = 0; i < scene->number_of_vertices; i++) {
-		for (int j = 0; j < bands*bands; j++)
-		{
-			coeffs[i][j].r *= scale;
-			coeffs[i][j].g *= scale;
-			coeffs[i][j].b *= scale;
+
+}
+
+void computeColor(CAssimpModel* model, Color* light, Color** coeffs, int bands)
+{
+	for (int i = 0; i < model->vertices.size(); i++) {
+		Color& c = model->vertices[i].m_color;
+		for (int j = 0; j < bands*bands; j++) {
+			c.r += light[j].r * coeffs[i][j].r;
+			c.g += light[j].g * coeffs[i][j].g;
+			c.b += light[j].b * coeffs[i][j].b;
 		}
 	}
 }

@@ -78,7 +78,7 @@ bool ShaderProgram::compileShaderFromString( const string & source, GLSLShader::
 	glShaderSource( shaderHandle, 1, &c_code, NULL );
 
 	// Compile the shader
-	glCompileShader(shaderHandle );
+	glCompileShader(shaderHandle);
 
 	// Check for errors
 	int result;
