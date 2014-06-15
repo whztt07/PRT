@@ -9,8 +9,8 @@
 Color* light;
 Color** coeffs;
 //CAssimpModel model;
-const int bands = 5; 
-const int numSamples = 20;
+const int bands = 4; 
+const int numSamples = 50;
 
 
 int main()

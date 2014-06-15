@@ -19,7 +19,7 @@ struct Vertex
 
     Vertex() {}
 	Vertex(const glm::vec3& pos, const glm::vec3& color, const glm::vec3& normal) 
-		: m_pos(pos), m_color(color), m_normal(normal) {}
+		: m_pos(pos), m_color(color), m_normal(normal) { }
 	Vertex(float vx, float vy, float vz, float cr, float cg, float cb, float nx, float ny, float nz)
 		: m_pos(vx, vy, vz), m_color(cr, cg, cb), m_normal(nx, ny, nz) {}
 };

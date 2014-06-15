@@ -103,6 +103,8 @@ bool CAssimpModel::LoadModelFromFile(const std::string& filepath)
 		it->m_pos.y *= fScale;
 		it->m_pos.z *= fScale;
 	}
+	aabb.max *= fScale;
+	aabb.min *= fScale;
 	//meshEntry.bindBuffer(vertices, indices);
 
 	isLoaded = true;

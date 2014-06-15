@@ -1,6 +1,7 @@
 #include "prt.h"
 #include <opencv2\opencv.hpp>
 using namespace cv;
+// 43
 
 bool Image::loadFromFile(const char* filename)
 {
@@ -30,11 +31,6 @@ bool Image::loadFromFile(const char* filename)
 }
 
 
-float Random()
-{
-	return (float)(rand() % 1000) / 1000.0f;
-}
-
 void GenerateSamples(Sampler* sampler, int N)
 {
 	Sample* samples = new Sample [N*N];
@@ -44,8 +40,8 @@ void GenerateSamples(Sampler* sampler, int N)
 	{
 		for (int j = 0; j < N; j++)
 		{
-			float a = ((float)i + Random()) / (float) N;
-			float b = ((float)j + Random()) / (float) N;
+			float a = ((float)i + rand()/RAND_MAX) / (float) N;
+			float b = ((float)j + rand()/RAND_MAX) / (float) N;
 			float theta = 2*acos(sqrt(1-a));
 			float phi = 2*PI*b;
 			float x = sin(theta)*cos(phi);
@@ -150,6 +146,7 @@ void PrecomputeSHFunctions(Sampler* sampler, int bands)
 		//		int j = l*(l+1) + m;
 		//		sh_functions[j] = SphericalHarmonic(l, m, theta, phi);
 		//	}
+		int xx = cos(x);
 	}
 }
 
@@ -272,30 +269,25 @@ bool RayIntersectsTriangle(Vector3& p, Vector3& d, Vector3& v0, Vector3& v1, Vec
 	return true;
 }
 
-bool Visibility(CAssimpModel* model, int vertexidx, Vector3& direction)
+bool Visibility(CAssimpModel* model, int vertexidx, Vector3& direction, Grid* grid)
 {
 	bool visible = true;
+	assert(vertexidx >= 0 && vertexidx <  model->vertices.size());
 	Vector3& p = model->vertices[vertexidx].m_pos;
-	for (int i = 0; i < model->indices.size(); i += 3)
-	{
-		int ta = model->indices[i];
-		int tb = model->indices[i+1];
-		int tc = model->indices[i+2];
-		if ((vertexidx != ta) && (vertexidx != tb) && (vertexidx != tc))
-		{
-			Vector3& v0 = model->vertices[ta].m_pos;
-			Vector3& v1 = model->vertices[tb].m_pos;
-			Vector3& v2 = model->vertices[tc].m_pos;
-			visible = !RayIntersectsTriangle(p, direction, v0, v1, v2);
-			if (!visible)
-				break;
-		}
+	Ray ray(p, direction);
+	if (grid->intersect(ray)) {
+		//cout << "1\n";
+		return false;
 	}
-	return visible;
+	return true;
+	//return grid->intersect(ray);
+	//return visible;
 }
 
 void ProjectShadowed(Color** coeffs, Sampler* sampler, CAssimpModel* model, int bands)
 {
+	Grid gridAccel(model);
+
 	for (int i = 0; i < model->vertices.size(); i++)
 		for (int j = 0; j < bands*bands; j++)
 			coeffs[i][j].r = coeffs[i][j].g = coeffs[i][j].b = 0.0f;
@@ -304,11 +296,11 @@ void ProjectShadowed(Color** coeffs, Sampler* sampler, CAssimpModel* model, int 
 	float scale = weight / sampler->number_of_samples;
 	for (int j = 0; j < sampler->number_of_samples; j++)
 	{
-		printf("%d\n", j);
+		//printf("%d\n", j);
 		Sample& sample = sampler->samples[j];
 		for (int i = 0; i < model->vertices.size(); i++)
 		{
-			if (Visibility(model, i, sample.cartesian_coord))
+			if (Visibility(model, i, sample.cartesian_coord, &gridAccel))
 			{
 				float cosine_term = glm::dot(model->vertices[i].m_normal, sample.cartesian_coord);
 				for (int k = 0; k < bands*bands; k++)
