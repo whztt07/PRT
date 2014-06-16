@@ -48,7 +48,11 @@ bool CAssimpModel::LoadModelFromFile(const std::string& filepath)
 {
 	/* load file with assimp and print some stats */
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile( filepath,  aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+	const aiScene* scene = importer.ReadFile(filepath, 
+        aiProcess_CalcTangentSpace       | 
+        aiProcess_Triangulate            |
+        aiProcess_JoinIdenticalVertices  |
+        aiProcess_SortByPType);
 	if (!scene) {
 		cout << "[ERROR] reading mesh " << filepath << endl; 
 		return false;

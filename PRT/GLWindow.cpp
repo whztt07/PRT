@@ -7,6 +7,7 @@ GLfloat GLWindow::zoom = 0.f;
 bool GLWindow::locked = false;
 int GLWindow::cursorX = 0;
 int GLWindow::cursorY = 0;
+LIGHTING_TYPE GLWindow::lightingType;
 
 GLWindow::GLWindow(int _width, int _height) 
 	: width(_width), height(_height), prog()
@@ -223,6 +224,15 @@ void GLWindow::key_callback(GLFWwindow* window, int key, int scancode, int actio
 			bAnim = !bAnim;
 		}
 		break;
+	case GLFW_KEY_1:
+		lightingType = LIGHTING_TYPE_GL;
+		break;
+
+	case GLFW_KEY_2:
+		lightingType = LIGHTING_TYPE_SH_UNSHADOWED;
+		break;
+	case GLFW_KEY_3:
+		lightingType = LIGHTING_TYPE_SH_SHADOWED;
 	}
 }
 

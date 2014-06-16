@@ -23,7 +23,7 @@ Grid::Grid(CAssimpModel* model) : model(model), cells(NULL) //, cellMemoryPool(N
 		resolution[i] = std::max(uint32_t(1), std::min(resolution[i], uint32_t(128)));
 	}
 #else
-	float cubeRoot = powf(1 * totalNumTriangles / (size[0] * size[1] * size[2]), 1 / 3.f);
+	float cubeRoot = powf(5 * totalNumTriangles / (size[0] * size[1] * size[2]), 1 / 3.f);
 	cout << "cubeRoot = " << cubeRoot << endl;
 	for (uint8_t i = 0; i < 3; ++i) {
 		resolution[i] = std::floor(size[i] * cubeRoot);
@@ -116,11 +116,14 @@ bool Grid::Cell::intersect(Ray&ray) const
 	float uhit, vhit;
 	for (uint32_t i = 0; i < triangles.size(); ++i) {
 		//cout << "triangles.size() = " << triangles.size() << endl;
-		uint32_t j = triangles[i] * 3;
-		assert(j >=0 && j < model->vertices.size()-2);
-		vec3& v0 = model->vertices[j].m_pos;
-		vec3& v1 = model->vertices[j+1].m_pos;
-		vec3& v2 = model->vertices[j+2].m_pos;
+		uint32_t idx0 = model->indices[triangles[i] * 3];
+		uint32_t idx1 = model->indices[triangles[i] * 3 + 1];
+		uint32_t idx2 = model->indices[triangles[i] * 3 + 2];
+
+		//assert(idx0 >=0 && idx0 < model->vertices.size() && idx1);
+		vec3& v0 = model->vertices[idx0].m_pos;
+		vec3& v1 = model->vertices[idx1].m_pos;
+		vec3& v2 = model->vertices[idx2].m_pos;
 
 		float t, u, v;
 		if (intersectTriangle(ray, v0, v1, v2, t, u, v)) {
@@ -170,7 +173,8 @@ bool Grid::intersect(Ray& ray) const
 		uint32_t o = cell[2] * resolution[0] * resolution[1] + cell[1] * resolution[0] + cell[0];
 		assert(o>=0 && o<ncell);
 		if (cells[o] != NULL) {
-			cells[o]->intersect(ray);
+			if (cells[o]->intersect(ray))
+				return true;
 			//if (hitObject != NULL) { ray.color = cells[o]->color; }
 		}
 		uint8_t k = 

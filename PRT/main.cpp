@@ -10,7 +10,7 @@ Color* light;
 Color** coeffs;
 //CAssimpModel model;
 const int bands = 4; 
-const int numSamples = 50;
+const int numSamples = 10;
 
 
 int main()
@@ -18,8 +18,8 @@ int main()
 	GLWindow window(480, 480);
 	CAssimpModel model;
 	//model.LoadModelFromFile("models/happy_vrip_res2.obj");
-	//model.LoadModelFromFile("models/bunny.obj");
-	model.LoadModelFromFile("models/head_sad.x");
+	model.LoadModelFromFile("models/bunny.obj");
+	//model.LoadModelFromFile("models/head_sad.x");
 
 #if 1
 	// load resources
@@ -59,8 +59,8 @@ int main()
 	ProjectLightFunction(light, &sampler, &img, bands);	// get light
 
 	cout << "  Project Unshadowed...\n";
-	ProjectUnshadowed(coeffs, &sampler, &model, bands);	// get coeffs
-	//ProjectShadowed(coeffs, &sampler, &model, bands);
+	//ProjectUnshadowed(coeffs, &sampler, &model, bands);	// get coeffs
+	ProjectShadowed(coeffs, &sampler, &model, bands);
 
 	auto endTime = Clock::now();
 	auto ms = duration_cast<milliseconds>(endTime-startTime).count();
@@ -70,10 +70,6 @@ int main()
 	// PART 2 Runtime
 	
 	computeColor(&model, light, coeffs, bands);
-
-	//GLWindow window(480, 480);
-	//CAssimpModel model;
-	//model.LoadModelFromFile("models/bunny.obj");
 	window.compileShader("shader/unShadowed.vert", "shader/unShadowed.frag");
 	window.prog.printActiveAttribs();
 	window.prog.printActiveUniforms();

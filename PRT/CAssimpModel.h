@@ -14,8 +14,12 @@ using namespace std;
 struct Vertex
 {
     glm::vec3 m_pos;
-	glm::vec3 m_color;
+	glm::vec3 m_color;	// including lighting
     glm::vec3 m_normal;
+	//glm::vec3 diffuseMaterial;
+	float* unshadowedCoeffs;
+	float* shadowedCoeffs;
+	
 
     Vertex() {}
 	Vertex(const glm::vec3& pos, const glm::vec3& color, const glm::vec3& normal) 

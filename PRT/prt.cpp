@@ -146,7 +146,6 @@ void PrecomputeSHFunctions(Sampler* sampler, int bands)
 		//		int j = l*(l+1) + m;
 		//		sh_functions[j] = SphericalHarmonic(l, m, theta, phi);
 		//	}
-		int xx = cos(x);
 	}
 }
 
@@ -194,6 +193,10 @@ void ProjectLightFunction(Color* coeffs, Sampler* sampler, Image* light, int ban
 			coeffs[j].r += (color.r * sh_function);
 			coeffs[j].g += (color.g * sh_function);
 			coeffs[j].b += (color.b * sh_function);
+			//Color directionLight(0.01f, 0.01f, 0.01f);	// ฒนนโ
+			//if (direction.z > 0) {
+			//	coeffs[j] += directionLight;
+			//}
 		}
 	}
 	float weight = 4.0f*PI;
@@ -220,8 +223,6 @@ void ProjectUnshadowed(Color** coeffs, Sampler* sampler, CAssimpModel* model, in
 		}
 	}
 
-	float weight = 4.0f*PI;
-	float scale = weight / sampler->number_of_samples;
 	for (int i = 0; i < model->vertices.size(); i++) {
 		for (int j = 0; j < sampler->number_of_samples; j++) {
 			Sample& sample = sampler->samples[j];
@@ -234,10 +235,18 @@ void ProjectUnshadowed(Color** coeffs, Sampler* sampler, CAssimpModel* model, in
 				//coeffs[i][k].r += (albedo.r * sh_function * cosine_term);
 				//coeffs[i][k].g += (albedo.g * sh_function * cosine_term);
 				//coeffs[i][k].b += (albedo.b * sh_function * cosine_term);
-				coeffs[i][k].r += (1.f * sh_function * cosine_term) * scale;
-				coeffs[i][k].g += (1.f * sh_function * cosine_term) * scale;
-				coeffs[i][k].b += (1.f * sh_function * cosine_term) * scale;
+				coeffs[i][k].r += (1.f * sh_function * cosine_term);
+				coeffs[i][k].g += (1.f * sh_function * cosine_term);
+				coeffs[i][k].b += (1.f * sh_function * cosine_term);
 			}
+		}
+	}
+
+	float weight = 4.0f*PI;
+	float scale = weight / sampler->number_of_samples;
+	for (int i = 0; i < model->vertices.size(); i++) {
+		for (int j = 0; j < bands*bands; j++) {
+			coeffs[i][j] *= scale;
 		}
 	}
 }
@@ -292,14 +301,12 @@ void ProjectShadowed(Color** coeffs, Sampler* sampler, CAssimpModel* model, int 
 		for (int j = 0; j < bands*bands; j++)
 			coeffs[i][j].r = coeffs[i][j].g = coeffs[i][j].b = 0.0f;
 
-	float weight = 4.0f*PI;
-	float scale = weight / sampler->number_of_samples;
-	for (int j = 0; j < sampler->number_of_samples; j++)
+	for (int i = 0; i < model->vertices.size(); i++)
 	{
 		//printf("%d\n", j);
-		Sample& sample = sampler->samples[j];
-		for (int i = 0; i < model->vertices.size(); i++)
+		for (int j = 0; j < sampler->number_of_samples; j++)
 		{
+			Sample& sample = sampler->samples[j];
 			if (Visibility(model, i, sample.cartesian_coord, &gridAccel))
 			{
 				float cosine_term = glm::dot(model->vertices[i].m_normal, sample.cartesian_coord);
@@ -311,11 +318,18 @@ void ProjectShadowed(Color** coeffs, Sampler* sampler, CAssimpModel* model, int 
 					//coeffs[i][k].r += (albedo.r * sh_function * cosine_term);
 					//coeffs[i][k].g += (albedo.g * sh_function * cosine_term);
 					//coeffs[i][k].b += (albedo.b * sh_function * cosine_term);
-					coeffs[i][k].r += (1.f * sh_function * cosine_term) * scale;
-					coeffs[i][k].g += (1.f * sh_function * cosine_term) * scale;
-					coeffs[i][k].b += (1.f * sh_function * cosine_term) * scale;
+					coeffs[i][k].r += (1.f * sh_function * cosine_term);
+					coeffs[i][k].g += (1.f * sh_function * cosine_term);
+					coeffs[i][k].b += (1.f * sh_function * cosine_term);
 				}
 			}
+		}
+	}
+	float weight = 4.0f*PI;
+	float scale = weight / sampler->number_of_samples;
+	for (int i = 0; i < model->vertices.size(); i++) {
+		for (int j = 0; j < bands*bands; j++) {
+			coeffs[i][j] *= scale;
 		}
 	}
 

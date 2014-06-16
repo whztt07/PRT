@@ -12,6 +12,13 @@ typedef vec3 Vector3;
 typedef vec3 Color;
 const float PI = 3.1415926f;
 
+enum LIGHTING_TYPE
+{
+	LIGHTING_TYPE_GL = 0,
+	LIGHTING_TYPE_SH_UNSHADOWED,
+	LIGHTING_TYPE_SH_SHADOWED
+};
+
 struct Spherical
 {
 	float theta;
@@ -35,8 +42,15 @@ struct Sampler
 {
 	Sample* samples;
 	int number_of_samples;
+	Sampler() : samples(NULL) {}
+	~Sampler() {
+		if (NULL != samples)
+			delete []samples;
+		samples = NULL;
+	}
 };
 
+// describe a triangle with indices
 struct Triangle
 {
 	int a;
@@ -46,7 +60,7 @@ struct Triangle
 	void setValue(int _a, int _b, int _c) {a=_a; b=_b; c=_c; }
 };
 
-
+// for light probe
 struct Image {
 	int width;
 	int height;
@@ -66,7 +80,7 @@ public:
 
 	Ray(vec3 orig, vec3 dir, float near = 0, float far = 1000) : orig(orig), dir(dir), tmin(near), tmax(far) {}
 	vec3 operator() (const float t) const
-	{ return orig + dir*t; }  
+	{ return orig + dir*t; orig.length();}  
 }; 
 
 struct AABB {
@@ -83,6 +97,8 @@ struct AABB {
 		if (min.z > p.z) min.z = p.z;
 	}
 
+
+	// intersect with ray
 	bool intersect(Ray &r) const
 	{
 		float tmin, tmax, tymin, tymax, tzmin, tzmax;

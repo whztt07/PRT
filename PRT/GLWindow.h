@@ -1,5 +1,6 @@
-#ifndef _GLWINDOW_H_
-#define _GLWINDOW_H_
+#ifndef _GLWindow_H_
+#define _GLWindow_H_
+#include "global.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -55,6 +56,8 @@ private:
 	static GLfloat zoom;
 	static int cursorX;
 	static int cursorY;
+
+	static LIGHTING_TYPE lightingType;
 };
 
 #endif
